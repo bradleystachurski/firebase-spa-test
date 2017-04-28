@@ -5,8 +5,9 @@ import Home from './Home'
 import Login from './Login'
 import Register from './Register'
 import Dashboard from './protected/Dashboard'
+import Admin from './protected/Admin'
 import { logout } from '../helpers/auth'
-import { firebaseAuth } from '../config/constants'
+import { firebaseAuth, adminEmail } from '../config/constants'
 
 function PrivateRoute({component: Component, authed, ...rest}) {
   return (
@@ -38,6 +39,7 @@ function PublicRoute ({component: Component, authed, ...rest}) {
 
 export default class App extends Component {
   state = {
+    admin: false,
     authed: false,
     loading:  true
   }
@@ -45,12 +47,15 @@ export default class App extends Component {
   componentDidMount () {
     this.removeListener = firebaseAuth().onAuthStateChanged((user) => {
       if (user) {
+        const admin = user.email === adminEmail
         this.setState({
+          admin: admin,
           authed: true,
           loading: false
         })
       } else {
         this.setState({
+          admin: false,
           authed: false,
           loading: false
         })
@@ -80,6 +85,14 @@ export default class App extends Component {
                 </li>
                 <li>
                   {
+                    this.state.admin
+                      ? <Link to="/admin" className="navbar-brand">Admin</Link>
+                      : null
+                  }
+
+                </li>
+                <li>
+                  {
                     this.state.authed
                       ? <button
                           style={{border: 'none', background: 'transparent'}}
@@ -104,6 +117,7 @@ export default class App extends Component {
                 <PublicRoute authed={this.state.authed} path="/login" component={Login}></PublicRoute>
                 <PublicRoute authed={this.state.authed} path="/register" component={Register}></PublicRoute>
                 <PrivateRoute authed={this.state.authed} path="/dashboard" component={Dashboard}></PrivateRoute>
+                <PrivateRoute authed={this.state.authed} path="/admin" component={Admin}></PrivateRoute>
                 <Route render={() => <h3>No Match</h3>} />
               </Switch>
             </div>
